@@ -52,13 +52,15 @@ const unsigned long notifyRepeatTime PROGMEM = 10; //minutes
 //SMS strings in progmem
 prog_char noMove[] PROGMEM = "I've seen no movement for ";
 prog_char waitStr[] PROGMEM = " minutes before alert.";
-prog_char waitStr2[] PROGMEM = "Last move was ";
+prog_char waitStr2[] PROGMEM = "Last movement ";
 
 PROGMEM const char *string_table[] = {
   noMove,
   waitStr,
   waitStr2
 };
+
+#define TXT_BUF 35
 
 // Timer interrupt to check PIR sensor status
 // and reset flags as necessary
@@ -156,7 +158,9 @@ void loop() {
     Serial.println(F("Send first notify"));
 #endif
 #if SMS_ON == 1
-    int smsError = send_alert_SMS((millis() - lastPir) / (60UL*1000UL));
+    char txtMsg[TXT_BUF];
+    int smsError = alert_SMS(txtMsg, TXT_BUF, (millis() - lastPir) / (60UL*1000UL));
+    send_SMS(txtMsg);
 #endif
     lastNotify = millis();
     sendNotify = true;
@@ -172,7 +176,9 @@ void loop() {
     Serial.println(F("Send repeat notify"));
 #endif
 #if SMS_ON == 1
-    int smsError = send_alert_SMS((millis() - lastPir) / (60UL*1000UL));
+    char txtMsg[TXT_BUF];
+    int smsError = alert_SMS(txtMsg, TXT_BUF, (millis() - lastPir) / (60UL*1000UL));
+    send_SMS(txtMsg);
 #endif
     lastNotify = millis();
     sendNotify = true;
@@ -192,8 +198,16 @@ void loop() {
     Serial.println(F("Parsing incoming SMS"));
 #endif
     int smsError = parse_SMS();
-    if (smsError == 1) send_response_SMS(allowedTimeGap);
-    if (smsError > 0 ) send_status_SMS((millis() - lastPir) / (60UL*1000UL));
+    if (smsError == 1) {
+      char txtMsg[TXT_BUF];
+      response_SMS(txtMsg, TXT_BUF, allowedTimeGap);
+      send_SMS(txtMsg);
+    }
+    if (smsError > 0 ) {
+      char txtMsg[TXT_BUF];
+      status_SMS(txtMsg, TXT_BUF, (millis() - lastPir) / (60UL*1000UL));
+      send_SMS(txtMsg);
+    }
   }
   
   //Send keepalive ping every 30 minutes
@@ -205,14 +219,14 @@ void loop() {
 
 
 // Send alert to server if no movement seen after time limit
-int send_GET(char function[7]) {
+int send_GET(char functn[7]) {
   if (client.connect(server, port)) {
 #if DEBUG == 1
     Serial.println("connected");
 #endif
     // Make a HTTP request:
     client.print(F("GET /api/"));
-    client.print(function);
+    client.print(functn);
     client.print(F("/"));
     client.print(uuid);
     client.println(F(" HTTP/1.1"));
@@ -222,7 +236,7 @@ int send_GET(char function[7]) {
     client.println();
 #if DEBUG == 1
     Serial.print(F("GET /api/"));
-    Serial.print(function);
+    Serial.print(functn);
     Serial.print(F("/"));
     Serial.print(uuid);
     Serial.println(F(" HTTP/1.1"));
@@ -307,89 +321,40 @@ int parse_SMS() {
 
 
 // Send SMS alert to user if no movement seen after time limit
-int send_alert_SMS(unsigned long gap) {
-  char txtMsg[35];
-  char buffer[30];
+int alert_SMS(char* txtMsg, int buflen, unsigned long gap) {
   char buf[11];
-  strcpy_P(buffer, (char*)pgm_read_word(&(string_table[0])));
-  strcpy(txtMsg, buffer);
+  strcpy_P(txtMsg, (char*)pgm_read_word(&(string_table[0])));
   sprintf(buf, "%lu", gap);
   strcat(txtMsg, buf);
   strcat(txtMsg, " minutes");
-  
-#if DEBUG==1
-  Serial.print(F("SENDING: "));
-  Serial.println(txtMsg);
-#endif
-  
-  // send the message
-#if SMS_ON==1
-  int test = sms.beginSMS(remoteNum);
-  if (test == 1) {
-    sms.print(txtMsg);
-    sms.endSMS(); 
-  } else {
-    return 0;
-  }
-#endif
-  free_RAM();
-#if DEBUG==1
-  Serial.println(F("COMPLETE"));
-#endif
-  return 1;
 }
 
 
 // Send SMS response to changed settings
-int send_response_SMS(unsigned long gap) {
-  char txtMsg[35];
-  char buffer[30];
+int response_SMS(char* txtMsg, int buflen, unsigned long gap) {
   char buf[11];
   strcpy(txtMsg, "Waiting ");
   sprintf(buf, "%lu", gap);
   strcat(txtMsg, buf);
-  strcpy_P(buffer, (char*)pgm_read_word(&(string_table[1])));
-  strcat(txtMsg, buffer);
-
-#if DEBUG==1
-  Serial.print(F("SENDING: "));
-  Serial.println(txtMsg);
-#endif
-  
-  // send the message
-#if SMS_ON==1
-  int test = sms.beginSMS(remoteNum);
-  if (test == 1) {
-    sms.print(txtMsg);
-    sms.endSMS(); 
-  } else {
-    return 0;
-  }
-#endif
-  free_RAM();
-#if DEBUG==1
-  Serial.println(F("COMPLETE"));
-#endif
-  return 1;
+  strcat_P(txtMsg, (char*)pgm_read_word(&(string_table[1])));
 }
 
-// Send SMS response to changed settings
-int send_status_SMS(unsigned long gap) {
-  char txtMsg[35];
-  char buffer[30];
+// Send SMS response to show status
+int status_SMS(char* txtMsg, int buflen, unsigned long gap) {
   char buf[11];
-  strcpy_P(buffer, (char*)pgm_read_word(&(string_table[2])));
-  strcpy(txtMsg, buffer);
+  strcpy_P(txtMsg, (char*)pgm_read_word(&(string_table[2])));
   sprintf(buf, "%lu", gap);
   strcat(txtMsg, buf);
   strcat(txtMsg, " minutes ago.");
+}
 
-#if DEBUG==1
+// Send the message
+int send_SMS(char* txtMsg) {
+  #if DEBUG==1
   Serial.print(F("SENDING: "));
   Serial.println(txtMsg);
 #endif
-  
-  // send the message
+
 #if SMS_ON==1
   int test = sms.beginSMS(remoteNum);
   if (test == 1) {
