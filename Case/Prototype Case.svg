@@ -24,9 +24,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.2549557"
-     inkscape:cx="173.46558"
-     inkscape:cy="939.98163"
+     inkscape:zoom="2.5505683"
+     inkscape:cx="133.82428"
+     inkscape:cy="895.20809"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -58,7 +58,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -119,7 +119,7 @@
        sodipodi:cy="548.1261"
        sodipodi:rx="12.641759"
        sodipodi:ry="13.519622"
-       d="m 310.65204,548.1261 a 12.641759,13.519622 0 1 1 -25.28351,0 12.641759,13.519622 0 1 1 25.28351,0 z"
+       d="m 310.65204,548.1261 c 0,7.46668 -5.6599,13.51962 -12.64176,13.51962 -6.98185,0 -12.64175,-6.05294 -12.64175,-13.51962 0,-7.46668 5.6599,-13.51962 12.64175,-13.51962 6.98186,0 12.64176,6.05294 12.64176,13.51962 z"
        transform="matrix(0.44844588,0,0,0.41934331,157.39095,459.31893)" />
     <path
        sodipodi:type="arc"
@@ -129,7 +129,7 @@
        sodipodi:cy="544.31879"
        sodipodi:rx="46.409695"
        sodipodi:ry="46.409695"
-       d="m 830.3572,544.31879 a 46.409695,46.409695 0 1 1 -92.81938,0 46.409695,46.409695 0 1 1 92.81938,0 z"
+       d="m 830.3572,544.31879 c 0,25.63136 -20.77832,46.40969 -46.40969,46.40969 -25.63137,0 -46.40969,-20.77833 -46.40969,-46.40969 0,-25.63137 20.77832,-46.4097 46.40969,-46.4097 25.63137,0 46.40969,20.77833 46.40969,46.4097 z"
        transform="matrix(0.89709399,0,0,0.89709399,122.82653,-295.19995)" />
     <path
        inkscape:connector-curvature="0"
@@ -401,7 +401,7 @@
            id="tspan3077"
            y="-66.068436"
            x="189.81133"
-           sodipodi:role="line">5V DC</tspan></text>
+           sodipodi:role="line">9V DC</tspan></text>
     </g>
     <text
        transform="matrix(0,-1,1,0,0,0)"
