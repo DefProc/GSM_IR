@@ -160,7 +160,7 @@ void loop() {
 #if SMS_ON == 1
     char txtMsg[TXT_BUF];
     int smsError = alert_SMS(txtMsg, TXT_BUF, (millis() - lastPir) / (60UL*1000UL));
-    send_SMS(txtMsg);
+    send_SMS(remoteNum, txtMsg);
 #endif
     lastNotify = millis();
     sendNotify = true;
@@ -178,7 +178,7 @@ void loop() {
 #if SMS_ON == 1
     char txtMsg[TXT_BUF];
     int smsError = alert_SMS(txtMsg, TXT_BUF, (millis() - lastPir) / (60UL*1000UL));
-    send_SMS(txtMsg);
+    send_SMS(remoteNum, txtMsg);
 #endif
     lastNotify = millis();
     sendNotify = true;
@@ -197,16 +197,19 @@ void loop() {
 #if DEBUG == 1
     Serial.println(F("Parsing incoming SMS"));
 #endif
+    //update the remote number to the last that contacted in
+    sms.remoteNumber(remoteNum, 20);
+    
     int smsError = parse_SMS();
     if (smsError == 1) {
       char txtMsg[TXT_BUF];
       response_SMS(txtMsg, TXT_BUF, allowedTimeGap);
-      send_SMS(txtMsg);
+      send_SMS(remoteNum, txtMsg);
     }
     if (smsError > 0 ) {
       char txtMsg[TXT_BUF];
       status_SMS(txtMsg, TXT_BUF, (millis() - lastPir) / (60UL*1000UL));
-      send_SMS(txtMsg);
+      send_SMS(remoteNum, txtMsg);
     }
   }
   
@@ -349,14 +352,14 @@ int status_SMS(char* txtMsg, int buflen, unsigned long gap) {
 }
 
 // Send the message
-int send_SMS(char* txtMsg) {
+int send_SMS(char* recievingNumber, char* txtMsg) {
   #if DEBUG==1
   Serial.print(F("SENDING: "));
   Serial.println(txtMsg);
 #endif
 
 #if SMS_ON==1
-  int test = sms.beginSMS(remoteNum);
+  int test = sms.beginSMS(recievingNumber);
   if (test == 1) {
     sms.print(txtMsg);
     sms.endSMS(); 
